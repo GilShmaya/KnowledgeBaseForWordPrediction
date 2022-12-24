@@ -3,10 +3,10 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
-import software.amazon.awssdk.profiles.ProfileFile;
 import utils.*;
 
 
@@ -111,7 +111,22 @@ public class Joiner {
     }
 
     public static void main(String[] args) throws Exception {
-
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Joiner");
+        job.setJarByClass(Joiner.class);
+        job.setMapperClass(MapperClass.class);
+        job.setPartitionerClass(PartitionerClass.class);
+        job.setReducerClass(ReducerClass.class);
+        job.setMapOutputKeyClass(Text.class);
+        job.setMapOutputValueClass(Text.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step1"),TextInputFormat.class,
+                Joiner.MapperClass.class);
+        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step2"),TextInputFormat.class,
+                Joiner.MapperClass.class);
+        FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step3"));
+        job.setOutputFormatClass(TextOutputFormat.class);
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
-
 }
