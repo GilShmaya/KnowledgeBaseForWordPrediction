@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
  */
 public class Splitter {
 
+    public static long N;
 
     /***
      * * Map every line into <trigram, Occurrences>, the Occurrences include a division of the corpus into two parts and
@@ -135,16 +136,14 @@ public class Splitter {
         job.setMapOutputValueClass(Occurrences.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, new Path(args[1])); // TODO: check if 0 // Google Book ngram file
-        job.setInputFormatClass(SequenceFileInputFormat.class);
+        //FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
+        //job.setInputFormatClass(SequenceFileInputFormat.class);
+        FileInputFormat.addInputPath(job, new Path(args[0])); // running from hadoop
         FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step1"));
         job.setOutputFormatClass(TextOutputFormat.class);
-        if (job.waitForCompletion(true)){
-            System.out.println("Corpus splitter succeed!");
-        }
         Counters counters = job.getCounters();
         Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
-        long N = counter.getValue();
+        N = counter.getValue();
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
