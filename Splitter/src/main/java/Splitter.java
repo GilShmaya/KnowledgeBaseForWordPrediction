@@ -1,6 +1,7 @@
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
+import utils.CounterN;
 import utils.Occurrences;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -144,7 +145,8 @@ public class Splitter {
         job.setOutputFormatClass(TextOutputFormat.class);
         Counters counters = job.getCounters();
         Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
-        N = counter.getValue();
+        CounterN counterN= CounterN.getInstance();
+        counterN.setN(counter.getValue());
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 }

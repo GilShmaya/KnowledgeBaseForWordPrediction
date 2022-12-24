@@ -147,5 +147,6 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.netty:netty-handler:4.1.86.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.netty:netty-transport-native-unix-common:4.1.86.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.netty:netty-transport-classes-epoll:4.1.86.Final" level="project" />
+    <orderEntry type="module" module-name="MainLogic" />
   </component>
 </module>
