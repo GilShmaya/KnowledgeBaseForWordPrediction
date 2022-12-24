@@ -56,4 +56,3 @@ public class Occurrences implements WritableComparable<Occurrences> {
     }
 
 }
-

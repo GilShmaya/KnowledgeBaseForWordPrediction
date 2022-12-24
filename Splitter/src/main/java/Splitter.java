@@ -64,7 +64,8 @@ public class Splitter {
      * @param <KEYOUT>
      * @param <VALUEOUT>
      */
-    public abstract static class ReducerSplitter<Text, Occurrences, KEYOUT, VALUEOUT> extends Reducer<Text, Occurrences, KEYOUT,
+    public abstract static class ReducerSplitter<Text, Occurrences, KEYOUT, VALUEOUT>
+            extends Reducer<Text, Occurrences, KEYOUT,
             VALUEOUT> {
         protected long r1;
         protected long r2;
@@ -78,9 +79,9 @@ public class Splitter {
         }
 
         public abstract void reduce(org.apache.hadoop.io.Text key, Iterable<utils.Occurrences> values,
-                                    Context context)  throws IOException, InterruptedException;
+                                    Context context) throws IOException, InterruptedException;
 
-        protected void reduceLogic(org.apache.hadoop.io.Text key, utils.Occurrences value){
+        protected void reduceLogic(org.apache.hadoop.io.Text key, utils.Occurrences value) {
             if (!key.toString().equals(text)) { // init
                 r1 = 0;
                 r2 = 0;
@@ -97,7 +98,8 @@ public class Splitter {
     /*** Combine the trigram's Occurrences the mapper created in each server.
      */
     public static class CombinerClass extends ReducerSplitter<Text, Occurrences, Text, Occurrences> {
-        public void reduce(Text key, Iterable<Occurrences> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Occurrences> values,
+                           Context context) throws IOException, InterruptedException {
             for (Occurrences value : values) {  // init
                 reduceLogic(key, value);
             }
@@ -115,10 +117,11 @@ public class Splitter {
             N
         }
 
-        public void reduce(Text key, Iterable<Occurrences> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Occurrences> values,
+                           Context context) throws IOException, InterruptedException {
             for (Occurrences value : values) {
                 context.getCounter(Counter.N).increment(value.getCount());
-                reduceLogic( key, value);
+                reduceLogic(key, value);
             }
             context.write(new Text(text), new Text(r1 + " " + r2));
         }
@@ -139,12 +142,11 @@ public class Splitter {
         //FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
         //job.setInputFormatClass(SequenceFileInputFormat.class);
         FileInputFormat.addInputPath(job, new Path(args[0])); // running from hadoop
-        FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step1"));
+        FileOutputFormat.setOutputPath(job, new Path("s3n://assignment2gy/Step1"));
         job.setOutputFormatClass(TextOutputFormat.class);
         Counters counters = job.getCounters();
         Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
         N = counter.getValue();
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
-
 }
