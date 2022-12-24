@@ -1,7 +1,6 @@
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import utils.CounterN;
 import utils.Occurrences;
 import org.apache.hadoop.conf.Configuration;
@@ -9,6 +8,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -32,16 +32,14 @@ public class Splitter {
      *        the occurrences of every trigram.
      */
     public static class MapperClass extends Mapper<LongWritable, Text, Text, Occurrences> {
-        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t" +
-                "(?<occurrences>\\d+).*"); // The Ngrams row contains: <n-gram year occurrences pages books>
+        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t(?<occurrences>\\d+).*"); // The Ngrams row contains: <n-gram year occurrences pages books>
         // seperated by tap
 
         @Override
         public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
             Matcher matcher = ENGLISH.matcher(line.toString());
             if (matcher.matches()) {
-                context.write(new Text(matcher.group("trigram")), new Occurrences((lineId.get() % 2 == 0),
-                        Long.parseLong(matcher.group("occurrences"))));
+                context.write(new Text(matcher.group("trigram")), new Occurrences((lineId.get() % 2 == 0), Long.parseLong(matcher.group("occurrences"))));
             }
         }
     }
@@ -50,8 +48,8 @@ public class Splitter {
      * * Defines the partition policy of sending the key-value the Mapper created to the reducers.
      */
     public static class PartitionerClass extends Partitioner<Text, Occurrences> {
-        public int getPartition(Text key, Occurrences value, int partitionsNumber) {
-            return key.hashCode() % partitionsNumber;
+        public int getPartition(Text key, Occurrences value, int numPartitions) {
+            return key.hashCode() % numPartitions;
         }
     }
 
@@ -139,16 +137,17 @@ public class Splitter {
         job.setMapOutputValueClass(Occurrences.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
+        FileInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-us-all/3gram/data"));
         job.setInputFormatClass(SequenceFileInputFormat.class);
         FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));// for running from aws
         job.setOutputFormatClass(TextOutputFormat.class);
-//        FileInputFormat.addInputPath(job, new Path(args[0]));  // running from hadoop
-//        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        Counters counters = job.getCounters();
-        Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
-        CounterN counterN= CounterN.getInstance();
-        counterN.setN(counter.getValue());
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        if (job.waitForCompletion(true)){
+            Counters counters = job.getCounters();
+            Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
+            CounterN counterN = CounterN.getInstance();
+            counterN.setN(counter.getValue());
+            System.exit(0);
+        }
+        System.exit(1);
     }
 }

@@ -91,7 +91,7 @@ public class SortOutput {
         MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step4"), TextInputFormat.class,
                 SortOutput.MapperClass.class);
         MultipleOutputs.addNamedOutput(job,"Result", TextOutputFormat.class,Text.class,Text.class);
-        FileOutputFormat.setOutputPath(job,new Path(args[2]));
+        FileOutputFormat.setOutputPath(job,new Path(args[1]));
         job.setOutputFormatClass(TextOutputFormat.class);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);

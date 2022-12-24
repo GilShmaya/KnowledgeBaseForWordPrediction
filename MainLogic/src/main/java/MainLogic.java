@@ -22,8 +22,7 @@ public class MainLogic {
         HadoopJarStepConfig hadoopJarStep1 = new HadoopJarStepConfig()
                 .withJar(BUCKET_PATH + "/Splitter.jar")
                 .withMainClass("Splitter")
-                .withArgs("s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-us-all/3gram/data",
-                        BUCKET_PATH + "/Output");
+                .withArgs(randomId);
         StepConfig stepConfig1 = new StepConfig()
                 .withName("Splitter")
                 .withHadoopJarStep(hadoopJarStep1)
@@ -59,17 +58,17 @@ public class MainLogic {
         HadoopJarStepConfig hadoopJarStep5 = new HadoopJarStepConfig()
                 .withJar(BUCKET_PATH + "/SortOutput.jar")
                 .withMainClass("SortOutput")
-                .withArgs(new String[] {randomId});
+                .withArgs(randomId, BUCKET_PATH + "/Output");
         StepConfig stepConfig5 = new StepConfig()
                 .withName("SortOutput")
                 .withHadoopJarStep(hadoopJarStep5)
                 .withActionOnFailure("TERMINATE_JOB_FLOW");
 
         JobFlowInstancesConfig instances = new JobFlowInstancesConfig()
-                .withInstanceCount(5)
+                .withInstanceCount(7)
                 .withMasterInstanceType(InstanceType.M4Large.toString())
                 .withSlaveInstanceType(InstanceType.M4Large.toString())
-                .withHadoopVersion("2.6.0")
+                .withHadoopVersion("2.10.1")
                 .withEc2KeyName("Assignment2-Key-Pair")
                 .withKeepJobFlowAliveWhenNoSteps(false)
                 .withPlacement(new PlacementType("us-east-1a"));
@@ -79,7 +78,7 @@ public class MainLogic {
                 .withReleaseLabel("emr-5.20.0")
                 .withInstances(instances)
                 .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
-                .withLogUri(BUCKET_PATH + randomId + "/logs/")
+                .withLogUri(BUCKET_PATH + "/logs/"  + randomId)
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withServiceRole("EMR_DefaultRole");
 
