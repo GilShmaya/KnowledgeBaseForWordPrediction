@@ -140,9 +140,10 @@ public class Splitter {
         job.setOutputValueClass(Text.class);
         //FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
         //job.setInputFormatClass(SequenceFileInputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(args[0])); // running from hadoop
-        FileOutputFormat.setOutputPath(job, new Path("s3n://assignment2gy/Step1"));
-        job.setOutputFormatClass(TextOutputFormat.class);
+        //FileOutputFormat.setOutputPath(job, new Path("s3n://assignment2gy/Step1"));// for running from aws
+        //job.setOutputFormatClass(TextOutputFormat.class);
+        FileInputFormat.addInputPath(job, new Path(args[0]));  // running from hadoop
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
         Counters counters = job.getCounters();
         Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
         CounterN counterN= CounterN.getInstance();
