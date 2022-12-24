@@ -1,6 +1,7 @@
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import utils.CounterN;
 import utils.Occurrences;
 import org.apache.hadoop.conf.Configuration;
@@ -138,12 +139,12 @@ public class Splitter {
         job.setMapOutputValueClass(Occurrences.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        //FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
-        //job.setInputFormatClass(SequenceFileInputFormat.class);
-        //FileOutputFormat.setOutputPath(job, new Path("s3n://assignment2gy/Step1"));// for running from aws
-        //job.setOutputFormatClass(TextOutputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(args[0]));  // running from hadoop
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+        FileInputFormat.addInputPath(job, new Path(args[1])); // for running from aws
+        job.setInputFormatClass(SequenceFileInputFormat.class);
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));// for running from aws
+        job.setOutputFormatClass(TextOutputFormat.class);
+//        FileInputFormat.addInputPath(job, new Path(args[0]));  // running from hadoop
+//        FileOutputFormat.setOutputPath(job, new Path(args[1]));
         Counters counters = job.getCounters();
         Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
         CounterN counterN= CounterN.getInstance();

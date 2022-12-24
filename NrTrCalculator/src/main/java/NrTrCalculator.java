@@ -103,9 +103,9 @@ public class NrTrCalculator {
         job.setMapOutputValueClass(Aggregator.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Aggregator.class);;
-        FileInputFormat.addInputPath(job, new Path("s3n://assignment2gy/Step1"));
+        FileInputFormat.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));
         job.setInputFormatClass(TextInputFormat.class);
-        FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step2"));
+        FileOutputFormat.setOutputPath(job,new Path(MainLogic.BUCKET_PATH + "/Step2"));
         job.setOutputFormatClass(TextOutputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

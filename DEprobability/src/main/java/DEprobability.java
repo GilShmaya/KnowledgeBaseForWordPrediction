@@ -139,9 +139,9 @@ public class DEprobability {
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(DoubleWritable.class);
-        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step3"), TextInputFormat.class, DEprobability.MapperClass.class);
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step3"), TextInputFormat.class, DEprobability.MapperClass.class);
         MultipleOutputs.addNamedOutput(job,"probs",TextOutputFormat.class,Text.class,DoubleWritable.class);
-        FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step4"));
+        FileOutputFormat.setOutputPath(job,new Path(MainLogic.BUCKET_PATH + "/Step4"));
         job.setOutputFormatClass(TextOutputFormat.class);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);

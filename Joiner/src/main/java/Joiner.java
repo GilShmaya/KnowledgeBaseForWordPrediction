@@ -120,11 +120,11 @@ public class Joiner {
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step1"),TextInputFormat.class,
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"),TextInputFormat.class,
                 Joiner.MapperClass.class);
-        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step2"),TextInputFormat.class,
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"),TextInputFormat.class,
                 Joiner.MapperClass.class);
-        FileOutputFormat.setOutputPath(job,new Path("s3n://assignment2gy/Step3"));
+        FileOutputFormat.setOutputPath(job,new Path(MainLogic.BUCKET_PATH + "/Step3"));
         job.setOutputFormatClass(TextOutputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

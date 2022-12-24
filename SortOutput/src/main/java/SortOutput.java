@@ -88,7 +88,7 @@ public class SortOutput {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        MultipleInputs.addInputPath(job, new Path("s3n://assignment2gy/Step4"), TextInputFormat.class,
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step4"), TextInputFormat.class,
                 SortOutput.MapperClass.class);
         MultipleOutputs.addNamedOutput(job,"Result", TextOutputFormat.class,Text.class,Text.class);
         FileOutputFormat.setOutputPath(job,new Path(args[2]));
