@@ -56,7 +56,7 @@ public class DEprobability {
 
             }
             else {
-                System.out.println("problem in the mapper of DEprobability - incorrect number of words"); // todo: check more occurrences of that message.
+                System.out.println("problem in the DEprobability's mapper - incorrect number of words");
             }
         }
     }
@@ -105,7 +105,7 @@ public class DEprobability {
                     Tr2=Double.parseDouble(NrTr[1]);
                     double DE= ((Tr1+Tr2)/((parameterN)*(Nr1+Nr2)));
                     DoubleWritable de = new DoubleWritable(DE);
-                    multiple.write("probability",currKey,de); // todo: change the string and all occurrences
+                    multiple.write("probability",currKey,de);
                 }
             }
         }
@@ -114,7 +114,7 @@ public class DEprobability {
             try {
                 multiple.close();
             } catch (IOException | InterruptedException e) {
-                System.out.println("Problem in the reduce of trigramSpliter"); // todo: change the string and all occurrences
+                System.out.println("Problem in the reduce of trigramSpliter");
                 e.printStackTrace();
             }
         }

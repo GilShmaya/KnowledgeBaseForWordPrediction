@@ -14,18 +14,20 @@ public class NewProbability implements WritableComparable<NewProbability> {
     private Double probability;
 
 
-    public NewProbability(){} // todo : why do we need an empty constructor ?
-    public NewProbability(String w1,String w2, Double otherProbability){
-        W1=w1;
-        W2=w2;
-        probability=otherProbability;
+    public NewProbability() {
+    }
+
+    public NewProbability(String w1, String w2, Double otherProbability) {
+        W1 = w1;
+        W2 = w2;
+        probability = otherProbability;
     }
 
     @Override
     public int compareTo(NewProbability other) {
-        int compareProb = firstTwoWords().compareTo(other.firstTwoWords());
+        int compareProb = gettersTwoWords().compareTo(other.gettersTwoWords());
         // compare probabilities only if the first two words of two different trigrams is the same
-        if(compareProb==0){
+        if (compareProb == 0) {
             if (probability < other.probability)
                 return 1;
             else if (probability > other.probability)
@@ -45,12 +47,12 @@ public class NewProbability implements WritableComparable<NewProbability> {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        W1= dataInput.readUTF();
-        W2= dataInput.readUTF();
-        probability= dataInput.readDouble();
+        W1 = dataInput.readUTF();
+        W2 = dataInput.readUTF();
+        probability = dataInput.readDouble();
     }
 
-    public String firstTwoWords (){ // todo : changed method name
+    public String gettersTwoWords() {
         String firstTwo = W1 + " " + W2;
         return firstTwo;
     }
@@ -58,13 +60,14 @@ public class NewProbability implements WritableComparable<NewProbability> {
     public double getProbability() {
         return probability;
     }
+
     public String getProbabilityString() {
         return String.valueOf(probability);
     }
 
     @Override
     public String toString() {
-        String newProbToString = W1+" "+W2+" "+String.valueOf(probability);
+        String newProbToString = W1 + " " + W2 + " " + String.valueOf(probability);
         return newProbToString;
     }
 }

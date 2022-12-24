@@ -70,7 +70,7 @@ public class MainLogic {
                 .withMasterInstanceType(InstanceType.M4Large.toString())
                 .withSlaveInstanceType(InstanceType.M4Large.toString())
                 .withHadoopVersion("2.6.0")
-                .withEc2KeyName("Assignment2-Key-Pair") // TODO
+                .withEc2KeyName("Assignment2-Key-Pair")
                 .withKeepJobFlowAliveWhenNoSteps(false)
                 .withPlacement(new PlacementType("us-east-1a"));
 

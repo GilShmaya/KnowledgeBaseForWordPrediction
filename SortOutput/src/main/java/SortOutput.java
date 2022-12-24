@@ -37,7 +37,7 @@ public class SortOutput {
             if (data.length == 4) {
                 context.write(new NewProbability(data[0], data[1], Double.parseDouble(data[3])), new Text(data[2]));
             } else {
-                System.out.println("problem in the mapper of ArrangingTheResult - incorrect number of words"); // todo
+                System.out.println("problem in the ArrangingTheResult's mapper - incorrect number of words");
             }
         }
     }
@@ -54,14 +54,14 @@ public class SortOutput {
         }
         public void reduce(NewProbability key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
             for (Text value : values) {
-                multiple.write("Result",new Text(key.firstTwoWords()+" "+value.toString()),new Text(key.getProbabilityString()));
+                multiple.write("Result",new Text(key.gettersTwoWords()+" "+value.toString()),new Text(key.getProbabilityString()));
             }
         }
         public void cleanup(Context context)  {
             try {
                 multiple.close();
             } catch (IOException | InterruptedException e) {
-                System.out.println("Problem in the reduce of trigramSpliter"); // todo
+                System.out.println("Problem in the sorter's reduce method");
                 e.printStackTrace();
             }
         }
