@@ -47,7 +47,8 @@ public class NrTrCalculator {
      */
     public static class PartitionerClass extends Partitioner<LongWritable, Aggregator> {
         public int getPartition(LongWritable key, Aggregator value, int numPartitions) {
-            return key.hashCode() % numPartitions;
+            //return key.hashCode() % numPartitions;
+            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
         }
     }
 

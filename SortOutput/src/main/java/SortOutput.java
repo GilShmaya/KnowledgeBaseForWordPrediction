@@ -69,7 +69,8 @@ public class SortOutput {
 
     public static class PartitionerClass extends Partitioner<NewProbability,Text> {
         public int getPartition(NewProbability key, Text value, int numPartitions) {
-            return key.hashCode() % numPartitions;
+            //return key.hashCode() % numPartitions;
+            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
         }
     }
 
