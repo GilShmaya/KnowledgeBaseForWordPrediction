@@ -133,13 +133,16 @@ public class Splitter {
             N
         }
 
-        public void reduce(Text key, Iterable<Occurrences> values,
-                           Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Occurrences> values, Reducer<Text, Occurrences, Text, Text>.Context context)
+                throws IOException, InterruptedException
+        {
+            int sum = 0;
             for (Occurrences value : values) {
-                context.getCounter(Counter.N).increment(value.getCount());
                 reduceLogic(key, value);
+                sum = (int)(sum + value.getCount());
             }
-            context.write(new Text(text), new Text(r1 + " " + r2));
+            context.getCounter(Splitter.ReducerClass.Counter.N).increment(sum);
+            context.write(new Text(this.text), new Text(this.r1 + " " + this.r2));
         }
     }
 
