@@ -29,8 +29,7 @@ public class Joiner {
     public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         @Override
         public void map(LongWritable lineId, Text line, Mapper<LongWritable, Text, Text, Text>.Context context)
-                throws IOException, InterruptedException
-        {
+                throws IOException, InterruptedException {
             String[] arr = line.toString().split("\\s+");
             if (arr.length == 4) {
                 String R = arr[0];
@@ -38,8 +37,7 @@ public class Joiner {
                 String Nri = arr[2];
                 String Tri = arr[3];
                 context.write(new Text(R + "A"), new Text(String.format("%s %s %s", corpus_group, Nri, Tri)));
-            }
-            else if (arr.length == 5) {
+            } else if (arr.length == 5) {
                 String w0 = arr[0];
                 String w1 = arr[1];
                 String w2 = arr[2];
@@ -56,11 +54,11 @@ public class Joiner {
     /***
      * * Defines the partition policy of sending the key-value the Mapper created to the reducers.
      */
-    public static class PartitionerClass extends Partitioner<LongWritable, Aggregator> {
-        public int getPartition(LongWritable key, Aggregator value, int numPartitions) {
-                String RInKey = key.toString().substring(0, key.toString().length() - 1);
-                return (RInKey.hashCode() & Integer.MAX_VALUE) % numPartitions;
-            }
+    public static class PartitionerClass extends Partitioner<Text, Text> {
+        public int getPartition(Text key, Text value, int numPartitions) {
+            String RInKey = key.toString().substring(0, key.toString().length() - 1);
+            return (RInKey.hashCode() & Integer.MAX_VALUE) % numPartitions;
+        }
     }
 
     /**
@@ -123,9 +121,11 @@ public class Joiner {
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"), TextInputFormat.class, Joiner.MapperClass.class);
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"), TextInputFormat.class,
+                Joiner.MapperClass.class);
 
-        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"), TextInputFormat.class, Joiner.MapperClass.class);
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"), TextInputFormat.class,
+                Joiner.MapperClass.class);
 
         FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step3"));
         job.setOutputFormatClass(TextOutputFormat.class);
