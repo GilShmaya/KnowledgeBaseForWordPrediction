@@ -147,23 +147,22 @@ public class Splitter {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Splitter");
         job.setJarByClass(Splitter.class);
-        job.setMapperClass(MapperClass.class);
-        job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(CombinerClass.class);
-        job.setReducerClass(ReducerClass.class);
+        job.setMapperClass(Splitter.MapperClass.class);
+        job.setPartitionerClass(Splitter.PartitionerClass.class);
+        job.setCombinerClass(Splitter.CombinerClass.class);
+        job.setReducerClass(Splitter.ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Occurrences.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-us-all/3gram/data"));
         job.setInputFormatClass(SequenceFileInputFormat.class);
-        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));// for running from aws
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));
         job.setOutputFormatClass(TextOutputFormat.class);
-        if (job.waitForCompletion(true)){
+        if (job.waitForCompletion(true)) {
             Counters counters = job.getCounters();
             Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
-            CounterN counterN = CounterN.getInstance();
-            counterN.setN(counter.getValue());
+            CounterN.getInstance().setN(counter.getValue());
             System.exit(0);
         }
         System.exit(1);
