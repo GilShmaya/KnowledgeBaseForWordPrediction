@@ -14,6 +14,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,18 +32,34 @@ public class Splitter {
      * * Map every line into <trigram, Occurrences>, the Occurrences include a division of the corpus into two parts and
      *        the occurrences of every trigram.
      */
-    public static class MapperClass extends Mapper<LongWritable, Text, Text, Occurrences> {
-        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t(?<occurrences>\\d+).*"); // The Ngrams row contains: <n-gram year occurrences pages books>
-        // seperated by tap
+    public static class MapperClass extends Mapper<LongWritable, Text, Text, Occurrences>
+    {
+        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t(?<occurrences>\\d+).*");
 
-        @Override
-        public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
+        public void map(LongWritable lineId, Text line, Mapper<LongWritable, Text, Text, Occurrences>.Context context)
+                throws IOException, InterruptedException
+        {
             Matcher matcher = ENGLISH.matcher(line.toString());
             if (matcher.matches()) {
-                context.write(new Text(matcher.group("trigram")), new Occurrences((lineId.get() % 2 == 0), Long.parseLong(matcher.group("occurrences"))));
+                String trigram = matcher.group("trigram");
+                if (!containStopWord(trigram))
+                    context.write(new Text(trigram), new Occurrences(lineId.get() % 2L == 0L, Long.parseLong(matcher.group("occurrences"))));
             }
         }
+
+        public static boolean containStopWord(String trigram)
+        {
+            Set stopWords = StopWords.getInstance().getStopWordsSet();
+
+            String[] arr = trigram.split("\\s+");
+            String w1 = arr[0].toLowerCase();
+            String w2 = arr[1].toLowerCase();
+            String w3 = arr[2].toLowerCase();
+
+            return (stopWords.contains(w1)) || (stopWords.contains(w2)) || (stopWords.contains(w3));
+        }
     }
+
 
     /***
      * * Defines the partition policy of sending the key-value the Mapper created to the reducers.
