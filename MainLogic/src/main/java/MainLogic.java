@@ -11,7 +11,7 @@ import org.apache.log4j.BasicConfigurator;
 import java.util.Random;
 
 public class MainLogic {
-    public static String BUCKET_PATH = "s3n://assignment2gy";
+    public static String BUCKET_PATH = "s3n://assignment2gy-new";
 
     public static void main(String[] args) {
         String randomId = RandomStringUtils.random(7, true, true);
@@ -58,7 +58,7 @@ public class MainLogic {
         HadoopJarStepConfig hadoopJarStep5 = new HadoopJarStepConfig()
                 .withJar(BUCKET_PATH + "/SortOutput.jar")
                 .withMainClass("SortOutput")
-                .withArgs(randomId, BUCKET_PATH + "/Output");
+                .withArgs();
         StepConfig stepConfig5 = new StepConfig()
                 .withName("SortOutput")
                 .withHadoopJarStep(hadoopJarStep5)
@@ -77,7 +77,8 @@ public class MainLogic {
                 .withName("KnowledgeBaseForWordPrediction")
                 .withReleaseLabel("emr-5.20.0")
                 .withInstances(instances)
-                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
+//                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
+                .withSteps( stepConfig2, stepConfig3, stepConfig4, stepConfig5)
                 .withLogUri(BUCKET_PATH + "/logs/"  + randomId)
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withServiceRole("EMR_DefaultRole");
