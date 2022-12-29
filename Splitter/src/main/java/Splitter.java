@@ -84,23 +84,23 @@ public class Splitter {
             VALUEOUT> {
         protected long r1;
         protected long r2;
-        protected String text;
+        protected String trigram;
 
         @Override
         public void setup(Context context) {
             r1 = 0;
             r2 = 0;
-            text = "";
+            trigram = "";
         }
 
         public abstract void reduce(org.apache.hadoop.io.Text key, Iterable<utils.Occurrences> values,
                                     Context context) throws IOException, InterruptedException;
 
         protected void reduceLogic(org.apache.hadoop.io.Text key, utils.Occurrences value) {
-            if (!key.toString().equals(text)) { // init
+            if (!key.toString().equals(trigram)) { // init
                 r1 = 0;
                 r2 = 0;
-                text = key.toString();
+                trigram = key.toString();
             }
             if (value.getCorpus_group()) {
                 r1 += value.getCount();
@@ -118,8 +118,8 @@ public class Splitter {
             for (Occurrences value : values) {  // init
                 reduceLogic(key, value);
             }
-            context.write(new Text(text), new Occurrences(true, r1));
-            context.write(new Text(text), new Occurrences(false, r2));
+            context.write(new Text(trigram), new Occurrences(true, r1));
+            context.write(new Text(trigram), new Occurrences(false, r2));
         }
     }
 
@@ -141,7 +141,7 @@ public class Splitter {
                 sum = (int)(sum + value.getCount());
             }
             context.getCounter(Splitter.ReducerClass.Counter.N).increment(sum);
-            context.write(new Text(this.text), new Text(this.r1 + " " + this.r2));
+            context.write(new Text(this.trigram), new Text(this.r1 + " " + this.r2));
         }
     }
 
