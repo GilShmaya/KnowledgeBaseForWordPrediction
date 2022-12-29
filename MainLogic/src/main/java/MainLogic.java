@@ -11,7 +11,7 @@ import org.apache.log4j.BasicConfigurator;
 import java.util.Random;
 
 public class MainLogic {
-    public static String BUCKET_PATH = "s3n://assignment2gy-new";
+    public static String BUCKET_PATH = "s3n://assignment2gy";
 
     public static void main(String[] args) {
         String randomId = RandomStringUtils.random(7, true, true);

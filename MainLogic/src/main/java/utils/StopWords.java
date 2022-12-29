@@ -25,7 +25,7 @@ public class StopWords {
     private StopWords() {
         BasicConfigurator.configure();
         AmazonS3 s3 = (AmazonS3)((AmazonS3ClientBuilder)AmazonS3Client.builder().withRegion(Regions.US_EAST_1)).build();
-        S3Object s3Object = s3.getObject("assignment2gy", "eng-stopwords.txt");
+        S3Object s3Object = s3.getObject(bucket, fileName);
         InputStream objectContent = s3Object.getObjectContent();
         Scanner scanner = (new Scanner(objectContent)).useDelimiter("\\A");
         String text = scanner.hasNext() ? scanner.next() : "";
