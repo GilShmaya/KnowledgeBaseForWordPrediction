@@ -1,42 +1,42 @@
 package utils;
 
-import org.apache.hadoop.io.WritableComparable;
-
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import org.apache.hadoop.io.WritableComparable;
 
 public class Aggregator implements WritableComparable<Aggregator> {
-
     private int corpus_group;
     private long currentR;
     private long otherR;
+
+    public Aggregator() {
+    }
 
     public Aggregator(int corpus_group, long currentR, long otherR) {
         this.corpus_group = corpus_group;
         this.currentR = currentR;
         this.otherR = otherR;
-
     }
 
-    @Override public int compareTo(Aggregator o) {
+    public int compareTo(Aggregator o) {
         return this.toString().compareTo(o.toString());
     }
 
-    @Override public void write(DataOutput dataOutput) throws IOException {
-        dataOutput.writeInt(corpus_group);
-        dataOutput.writeLong(currentR);
-        dataOutput.writeLong(otherR);
+    public void write(DataOutput dataOutput) throws IOException {
+        dataOutput.writeInt(this.corpus_group);
+        dataOutput.writeLong(this.currentR);
+        dataOutput.writeLong(this.otherR);
     }
 
-    @Override public void readFields(DataInput dataInput) throws IOException {
-        corpus_group = dataInput.readInt();
-        currentR = dataInput.readLong();
-        otherR = dataInput.readLong();
+    public void readFields(DataInput dataInput) throws IOException {
+        this.corpus_group = dataInput.readInt();
+        this.currentR = dataInput.readLong();
+        this.otherR = dataInput.readLong();
     }
 
     public int getCorpus_group() {
-        return corpus_group;
+        return this.corpus_group;
     }
 
     public void setCorpus_group(int corpus_group) {
@@ -44,7 +44,7 @@ public class Aggregator implements WritableComparable<Aggregator> {
     }
 
     public long getCurrentR() {
-        return currentR;
+        return this.currentR;
     }
 
     public void setCurrentR(long currentR) {
@@ -52,7 +52,7 @@ public class Aggregator implements WritableComparable<Aggregator> {
     }
 
     public long getOtherR() {
-        return otherR;
+        return this.otherR;
     }
 
     public void setOtherR(long otherR) {
@@ -60,6 +60,6 @@ public class Aggregator implements WritableComparable<Aggregator> {
     }
 
     public String toString() {
-        return corpus_group + " " + currentR + " " + otherR;
+        return this.corpus_group + " " + this.currentR + " " + this.otherR;
     }
 }
