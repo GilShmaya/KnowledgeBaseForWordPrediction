@@ -66,8 +66,7 @@ public class Splitter {
      */
     public static class PartitionerClass extends Partitioner<Text, Occurrences> {
         public int getPartition(Text key, Occurrences value, int numPartitions) {
-            //return key.hashCode() % numPartitions;
-            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }
 
