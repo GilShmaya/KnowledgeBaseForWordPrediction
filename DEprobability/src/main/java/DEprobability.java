@@ -69,7 +69,7 @@ public class DEprobability {
      * @field <currKey> - the given trigram as a string (w1w2w3)
      */
 
-    public class ReducerClass extends Reducer<Text, Text, Text, DoubleWritable> {
+    public static class ReducerClass extends Reducer<Text, Text, Text, DoubleWritable> {
         private MultipleOutputs multiple;
         private double Nr1;
         private double Tr1;
@@ -120,8 +120,8 @@ public class DEprobability {
         }
     }
 
-    public static class PartitionerClass extends Partitioner<NewProbability, Text> {
-        public int getPartition(NewProbability key, Text value, int numPartitions) {
+    public static class PartitionerClass extends Partitioner<Text, Text> {
+        public int getPartition(Text key, Text value, int numPartitions) {
             return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }

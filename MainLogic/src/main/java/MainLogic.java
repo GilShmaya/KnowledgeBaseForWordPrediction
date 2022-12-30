@@ -77,8 +77,7 @@ public class MainLogic {
                 .withName("KnowledgeBaseForWordPrediction")
                 .withReleaseLabel("emr-5.20.0")
                 .withInstances(instances)
-//                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
-                .withSteps( stepConfig2, stepConfig3, stepConfig4, stepConfig5)
+                .withSteps(stepConfig1, stepConfig2, stepConfig3, stepConfig4, stepConfig5)
                 .withLogUri(BUCKET_PATH + "/logs/"  + randomId)
                 .withJobFlowRole("EMR_EC2_DefaultRole")
                 .withServiceRole("EMR_DefaultRole");
