@@ -30,14 +30,16 @@ public class NrTrCalculator {
 
         @Override
         public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
-            String[] arr = line.toString().split("\\s+"); // "\\s+" is used to match multiple whitespace characters
-            if (arr.length == 5) { // <w0, w1, w2, r1, r2>
+            String[] arr = line.toString().split("\\s+");
+            if (arr.length == 5) {
                 long r1 = Long.parseLong(arr[3]);
-                long r2 =  Long.parseLong(arr[4]);
-                context.write(new LongWritable(r1), new Aggregator(1, 1, r2));
-                context.write(new LongWritable(r2), new Aggregator(2, 1, r1));
+                long r2 = Long.parseLong(arr[4]);
+
+                context.write(new LongWritable(r1), new Aggregator(1, 1L, r2));
+                context.write(new LongWritable(r2), new Aggregator(2, 1L, r1));
             } else {
-                System.out.println("Error: NrTrMaker job, Mapper - the line should be in the format <w1, w2, w3, r1, r2>");
+                System.out.println(
+                        "Error: NrTrMaker job, Mapper - the line should be in the format <w1, w2, w3, r1, r2>");
             }
         }
     }
@@ -47,8 +49,8 @@ public class NrTrCalculator {
      */
     public static class PartitionerClass extends Partitioner<LongWritable, Aggregator> {
         public int getPartition(LongWritable key, Aggregator value, int numPartitions) {
-            //return key.hashCode() % numPartitions;
-            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
+
         }
     }
 
@@ -72,24 +74,26 @@ public class NrTrCalculator {
 
         public void reduce(LongWritable key, Iterable<Aggregator> values,
                            Context context) throws IOException, InterruptedException {
-            for (Aggregator value : values) {
-                if (R != key.get()) {
-                    R = key.get();
-                    Nr1 = 0;
-                    Nr2 = 0;
-                    Tr1 = 0;
-                    Tr2 = 0;
+            {
+                for (Aggregator value : values) {
+                    if (this.R != key.get()) {
+                        this.R = key.get();
+                        this.Nr1 = 0L;
+                        this.Nr2 = 0L;
+                        this.Tr1 = 0L;
+                        this.Tr2 = 0L;
+                    }
+                    if (value.getCorpus_group() == 1) {
+                        this.Nr1 += value.getCurrentR();
+                        this.Tr1 += value.getOtherR();
+                    } else {
+                        this.Nr2 += value.getCurrentR();
+                        this.Tr2 += value.getOtherR();
+                    }
                 }
-                if (value.getCorpus_group() == 1) {
-                    Nr1 += value.getCurrentR();
-                    Tr1 += value.getOtherR();
-                } else {
-                    Nr2 += value.getCurrentR();
-                    Tr2 += value.getOtherR();
-                }
+                context.write(new LongWritable(this.R), new Aggregator(1, this.Nr1, this.Tr1));
+                context.write(new LongWritable(this.R), new Aggregator(2, this.Nr2, this.Tr2));
             }
-            context.write(new LongWritable(R), new Aggregator(1, Nr1, Tr1));
-            context.write(new LongWritable(R), new Aggregator(2, Nr2, Tr2));
         }
     }
 
@@ -97,16 +101,16 @@ public class NrTrCalculator {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "NrTrCalculator");
         job.setJarByClass(NrTrCalculator.class);
-        job.setMapperClass(MapperClass.class);
-        job.setPartitionerClass(PartitionerClass.class);
-        job.setReducerClass(ReducerClass.class);
+        job.setMapperClass(NrTrCalculator.MapperClass.class);
+        job.setPartitionerClass(NrTrCalculator.PartitionerClass.class);
+        job.setReducerClass(NrTrCalculator.ReducerClass.class);
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(Aggregator.class);
         job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(Aggregator.class);;
+        job.setOutputValueClass(Aggregator.class);
         FileInputFormat.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));
         job.setInputFormatClass(TextInputFormat.class);
-        FileOutputFormat.setOutputPath(job,new Path(MainLogic.BUCKET_PATH + "/Step2"));
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"));
         job.setOutputFormatClass(TextOutputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

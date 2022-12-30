@@ -32,12 +32,13 @@ public class SortOutput {
     public static class MapperClass extends Mapper<LongWritable, Text, NewProbability, Text> {
         @Override
         public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
-            String[] data = line.toString().split("\\s+");
-            // data[0-2] = w1w2w3, data[3] = probability of w1w2w3
-            if (data.length == 4) {
-                context.write(new NewProbability(data[0], data[1], Double.parseDouble(data[3])), new Text(data[2]));
-            } else {
-                System.out.println("problem in the ArrangingTheResult's mapper - incorrect number of words");
+            {
+                String[] data = line.toString().split("\\s+");
+
+                if (data.length == 4)
+                    context.write(new NewProbability(data[0], data[1], Double.parseDouble(data[3])), new Text(data[2]));
+                else
+                    System.out.println("problem in the ArrangingTheResult's mapper - incorrect number of words");
             }
         }
     }
@@ -49,18 +50,23 @@ public class SortOutput {
     public static class ReducerClass extends Reducer<NewProbability,Text,Text, Text> {
         private MultipleOutputs multiple;
 
-        public void setup(Context context){
-            multiple= new MultipleOutputs(context);
+        public void setup(Reducer<NewProbability, Text, Text, Text>.Context context)
+        {
+            this.multiple = new MultipleOutputs(context);
         }
-        public void reduce(NewProbability key, Iterable<Text> values, Context context) throws IOException,  InterruptedException {
-            for (Text value : values) {
-                multiple.write("Result",new Text(key.gettersTwoWords()+" "+value.toString()),new Text(key.getProbabilityString()));
-            }
+
+        public void reduce(NewProbability key, Iterable<Text> values, Reducer<NewProbability, Text, Text, Text>.Context context) throws IOException, InterruptedException
+        {
+            for (Text value : values)
+                this.multiple.write("Result", new Text(key.gettersTwoWords() + " " + value.toString()), new Text(key
+                        .getProbabilityString()));
         }
-        public void cleanup(Context context)  {
+
+        public void cleanup(Reducer<NewProbability, Text, Text, Text>.Context context)
+        {
             try {
-                multiple.close();
-            } catch (IOException | InterruptedException e) {
+                this.multiple.close();
+            } catch (IOException|InterruptedException e) {
                 System.out.println("Problem in the sorter's reduce method");
                 e.printStackTrace();
             }
@@ -69,8 +75,7 @@ public class SortOutput {
 
     public static class PartitionerClass extends Partitioner<NewProbability,Text> {
         public int getPartition(NewProbability key, Text value, int numPartitions) {
-            //return key.hashCode() % numPartitions;
-            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }
 
@@ -89,10 +94,10 @@ public class SortOutput {
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
 
-        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step4"), TextInputFormat.class,
-                SortOutput.MapperClass.class);
-        MultipleOutputs.addNamedOutput(job,"Result", TextOutputFormat.class,Text.class,Text.class);
-        FileOutputFormat.setOutputPath(job,new Path(args[1]));
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step4"), TextInputFormat.class, SortOutput.MapperClass.class);
+
+        MultipleOutputs.addNamedOutput(job, "Result", TextOutputFormat.class, Text.class, Text.class);
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Output"));
         job.setOutputFormatClass(TextOutputFormat.class);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);

@@ -58,7 +58,7 @@ public class MainLogic {
         HadoopJarStepConfig hadoopJarStep5 = new HadoopJarStepConfig()
                 .withJar(BUCKET_PATH + "/SortOutput.jar")
                 .withMainClass("SortOutput")
-                .withArgs(randomId, BUCKET_PATH + "/Output");
+                .withArgs();
         StepConfig stepConfig5 = new StepConfig()
                 .withName("SortOutput")
                 .withHadoopJarStep(hadoopJarStep5)

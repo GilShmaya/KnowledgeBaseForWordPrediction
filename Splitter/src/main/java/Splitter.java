@@ -12,8 +12,10 @@ import org.apache.hadoop.mapreduce.lib.input.SequenceFileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import utils.StopWords;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,26 +33,41 @@ public class Splitter {
      * * Map every line into <trigram, Occurrences>, the Occurrences include a division of the corpus into two parts and
      *        the occurrences of every trigram.
      */
-    public static class MapperClass extends Mapper<LongWritable, Text, Text, Occurrences> {
-        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t(?<occurrences>\\d+).*"); // The Ngrams row contains: <n-gram year occurrences pages books>
-        // seperated by tap
+    public static class MapperClass extends Mapper<LongWritable, Text, Text, Occurrences>
+    {
+        private static final Pattern ENGLISH = Pattern.compile("(?<trigram>[A-Z]+ [A-Z]+ [A-Z]+)\\t\\d{4}\\t(?<occurrences>\\d+).*");
 
-        @Override
-        public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
+        public void map(LongWritable lineId, Text line, Mapper<LongWritable, Text, Text, Occurrences>.Context context)
+                throws IOException, InterruptedException
+        {
             Matcher matcher = ENGLISH.matcher(line.toString());
             if (matcher.matches()) {
-                context.write(new Text(matcher.group("trigram")), new Occurrences((lineId.get() % 2 == 0), Long.parseLong(matcher.group("occurrences"))));
+                String trigram = matcher.group("trigram");
+                if (!containStopWord(trigram))
+                    context.write(new Text(trigram), new Occurrences(lineId.get() % 2L == 0L, Long.parseLong(matcher.group("occurrences"))));
             }
         }
+
+        public static boolean containStopWord(String trigram)
+        {
+            Set stopWords = StopWords.getInstance().getStopWordsSet();
+
+            String[] arr = trigram.split("\\s+");
+            String w1 = arr[0].toLowerCase();
+            String w2 = arr[1].toLowerCase();
+            String w3 = arr[2].toLowerCase();
+
+            return (stopWords.contains(w1)) || (stopWords.contains(w2)) || (stopWords.contains(w3));
+        }
     }
+
 
     /***
      * * Defines the partition policy of sending the key-value the Mapper created to the reducers.
      */
     public static class PartitionerClass extends Partitioner<Text, Occurrences> {
         public int getPartition(Text key, Occurrences value, int numPartitions) {
-            //return key.hashCode() % numPartitions;
-            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
+            return (key.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }
 
@@ -68,23 +85,23 @@ public class Splitter {
             VALUEOUT> {
         protected long r1;
         protected long r2;
-        protected String text;
+        protected String trigram;
 
         @Override
         public void setup(Context context) {
             r1 = 0;
             r2 = 0;
-            text = "";
+            trigram = "";
         }
 
         public abstract void reduce(org.apache.hadoop.io.Text key, Iterable<utils.Occurrences> values,
                                     Context context) throws IOException, InterruptedException;
 
         protected void reduceLogic(org.apache.hadoop.io.Text key, utils.Occurrences value) {
-            if (!key.toString().equals(text)) { // init
+            if (!key.toString().equals(trigram)) { // init
                 r1 = 0;
                 r2 = 0;
-                text = key.toString();
+                trigram = key.toString();
             }
             if (value.getCorpus_group()) {
                 r1 += value.getCount();
@@ -102,8 +119,8 @@ public class Splitter {
             for (Occurrences value : values) {  // init
                 reduceLogic(key, value);
             }
-            context.write(new Text(text), new Occurrences(true, r1));
-            context.write(new Text(text), new Occurrences(false, r2));
+            context.write(new Text(trigram), new Occurrences(true, r1));
+            context.write(new Text(trigram), new Occurrences(false, r2));
         }
     }
 
@@ -116,13 +133,16 @@ public class Splitter {
             N
         }
 
-        public void reduce(Text key, Iterable<Occurrences> values,
-                           Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Occurrences> values, Reducer<Text, Occurrences, Text, Text>.Context context)
+                throws IOException, InterruptedException
+        {
+            int sum = 0;
             for (Occurrences value : values) {
-                context.getCounter(Counter.N).increment(value.getCount());
                 reduceLogic(key, value);
+                sum = (int)(sum + value.getCount());
             }
-            context.write(new Text(text), new Text(r1 + " " + r2));
+            context.getCounter(Splitter.ReducerClass.Counter.N).increment(sum);
+            context.write(new Text(this.trigram), new Text(this.r1 + " " + this.r2));
         }
     }
 
@@ -130,23 +150,22 @@ public class Splitter {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Splitter");
         job.setJarByClass(Splitter.class);
-        job.setMapperClass(MapperClass.class);
-        job.setPartitionerClass(PartitionerClass.class);
-        job.setCombinerClass(CombinerClass.class);
-        job.setReducerClass(ReducerClass.class);
+        job.setMapperClass(Splitter.MapperClass.class);
+        job.setPartitionerClass(Splitter.PartitionerClass.class);
+        job.setCombinerClass(Splitter.CombinerClass.class);
+        job.setReducerClass(Splitter.ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Occurrences.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path("s3://datasets.elasticmapreduce/ngrams/books/20090715/eng-us-all/3gram/data"));
         job.setInputFormatClass(SequenceFileInputFormat.class);
-        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));// for running from aws
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"));
         job.setOutputFormatClass(TextOutputFormat.class);
-        if (job.waitForCompletion(true)){
+        if (job.waitForCompletion(true)) {
             Counters counters = job.getCounters();
             Counter counter = counters.findCounter(Splitter.ReducerClass.Counter.N);
-            CounterN counterN = CounterN.getInstance();
-            counterN.setN(counter.getValue());
+            CounterN.getInstance().setN(counter.getValue());
             System.exit(0);
         }
         System.exit(1);

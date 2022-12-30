@@ -28,26 +28,25 @@ public class Joiner {
      */
     public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
         @Override
-        public void map(LongWritable lineId, Text line, Context context) throws IOException, InterruptedException {
-            String[] arr = line.toString().split("\\s+"); // "\\s+" is used to match multiple whitespace characters
-            if (arr.length == 5) { // Splitter's Output, <w0, w1, w2, r1, r2>
+        public void map(LongWritable lineId, Text line, Mapper<LongWritable, Text, Text, Text>.Context context)
+                throws IOException, InterruptedException {
+            String[] arr = line.toString().split("\\s+");
+            if (arr.length == 4) {
+                String R = arr[0];
+                String corpus_group = arr[1];
+                String Nri = arr[2];
+                String Tri = arr[3];
+                context.write(new Text(R + "A"), new Text(String.format("%s %s %s", corpus_group, Nri, Tri)));
+            } else if (arr.length == 5) {
                 String w0 = arr[0];
                 String w1 = arr[1];
                 String w2 = arr[2];
                 String r1 = arr[3];
                 String r2 = arr[4];
-                context.write(new Text(r1 + "_1"),
-                        new Text(String.format("1 %s %s %s", w0, w1, w2)));
-                context.write(new Text(r2 + "_1"), new Text(String.format("2 %s %s %s", w0, w1, w2)));
-            } else if (arr.length == 4) { // NrTrCalculator's Output, <R, corpus_group, Nri, Tri>
-                String R = arr[0];
-                String corpus_group = arr[1];
-                String Nri = arr[2];
-                String Tri = arr[3];
-                context.write(new Text(R + "_0"), new Text(String.format("%s %s %s", corpus_group, Nri, Tri)));
+                context.write(new Text(r1 + "B"), new Text(String.format("1 %s %s %s", w0, w1, w2)));
+                context.write(new Text(r2 + "B"), new Text(String.format("2 %s %s %s", w0, w1, w2)));
             } else {
                 System.out.println("Error: Joiner job, Mapper - invalid input");
-
             }
         }
     }
@@ -55,10 +54,10 @@ public class Joiner {
     /***
      * * Defines the partition policy of sending the key-value the Mapper created to the reducers.
      */
-    public static class PartitionerClass extends Partitioner<LongWritable, Aggregator> {
-        public int getPartition(LongWritable key, Aggregator value, int numPartitions) {
-            //return key.hashCode() % numPartitions;
-            return key.hashCode() & Integer.MAX_VALUE % numPartitions;
+    public static class PartitionerClass extends Partitioner<Text, Text> {
+        public int getPartition(Text key, Text value, int numPartitions) {
+            String RInKey = key.toString().substring(0, key.toString().length() - 1);
+            return (RInKey.hashCode() & Integer.MAX_VALUE) % numPartitions;
         }
     }
 
@@ -79,32 +78,33 @@ public class Joiner {
         public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
             for (Text value : values) {
                 String[] arr = value.toString().split("\\s+");
-                String RInKey = key.toString().substring(0, key.toString().length() - 2);
-                if (!R.equals(RInKey)) {
-                    R = RInKey;
-                    NrTr1 = "0 0";
-                    NrTr2 = "0 0";
+                String RInKey = key.toString().substring(0, key.toString().length() - 1);
+                if (!this.R.equals(RInKey)) {
+                    this.R = RInKey;
+                    this.NrTr1 = "0 0";
+                    this.NrTr2 = "0 0";
                 }
-                if (arr.length == 3) { // <corpus_group, Nri, Tri>
+
+                int len = arr.length;
+                if (len == 3) {
                     String corpus_group = arr[0];
                     String Nri = arr[1];
                     String Tri = arr[2];
-                    if (Integer.parseInt(corpus_group) == 1) {
-                        NrTr1 = Nri + " " + Tri;
-                    } else {
-                        NrTr2 = Nri + " " + Tri;
+                    if (Integer.parseInt(corpus_group) == 1)
+                        this.NrTr1 = (Nri + " " + Tri);
+                    else {
+                        this.NrTr2 = (Nri + " " + Tri);
                     }
                 }
-                if (arr.length == 4) { // <corpus_group, w0, w1, w2>
+                if (len == 4) {
                     String corpus_group = arr[0];
                     String w0 = arr[1];
                     String w1 = arr[2];
                     String w2 = arr[3];
-                    if (Integer.parseInt(corpus_group) == 1) {
-                        context.write(new Text(w0 + " " + w1 + " " + w2), new Text(NrTr1));
-                    } else {
-                        context.write(new Text(w0 + " " + w1 + " " + w2), new Text(NrTr2));
-                    }
+                    if (Integer.parseInt(corpus_group) == 1)
+                        context.write(new Text(w0 + " " + w1 + " " + w2), new Text(this.NrTr1));
+                    else
+                        context.write(new Text(w0 + " " + w1 + " " + w2), new Text(this.NrTr2));
                 }
             }
         }
@@ -114,18 +114,20 @@ public class Joiner {
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "Joiner");
         job.setJarByClass(Joiner.class);
-        job.setMapperClass(MapperClass.class);
-        job.setPartitionerClass(PartitionerClass.class);
-        job.setReducerClass(ReducerClass.class);
+        job.setMapperClass(Joiner.MapperClass.class);
+        job.setPartitionerClass(Joiner.PartitionerClass.class);
+        job.setReducerClass(Joiner.ReducerClass.class);
         job.setMapOutputKeyClass(Text.class);
         job.setMapOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
-        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"),TextInputFormat.class,
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step1"), TextInputFormat.class,
                 Joiner.MapperClass.class);
-        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"),TextInputFormat.class,
+
+        MultipleInputs.addInputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step2"), TextInputFormat.class,
                 Joiner.MapperClass.class);
-        FileOutputFormat.setOutputPath(job,new Path(MainLogic.BUCKET_PATH + "/Step3"));
+
+        FileOutputFormat.setOutputPath(job, new Path(MainLogic.BUCKET_PATH + "/Step3"));
         job.setOutputFormatClass(TextOutputFormat.class);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
