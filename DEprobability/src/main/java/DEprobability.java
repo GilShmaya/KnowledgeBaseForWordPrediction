@@ -82,7 +82,7 @@ public class DEprobability {
         public void setup(Reducer<Text, Text, Text, DoubleWritable>.Context context)
         {
             this.multiple = new MultipleOutputs(context);
-            this.index = 0;
+            this.index = 0; // indicate whether this the first time we see the trigrm
             this.Nr1 = 1.0D;
             this.Tr1 = 0.0D;
             this.Nr2 = 1.0D;
@@ -95,17 +95,18 @@ public class DEprobability {
             this.currKey = key.toString();
             for (Text value : values) {
                 String[] NrTr = value.toString().split("\\s+");
-                if (this.index == 0) {
+                if (this.index == 0) { // first corpus parts
                     this.index += 1;
                     this.Nr1 = Double.parseDouble(NrTr[0]);
                     this.Tr1 = Float.parseFloat(NrTr[1]);
                 }
-                else {
+                else { // second corpus parts
                     this.Nr2 = Double.parseDouble(NrTr[0]);
                     this.Tr2 = Double.parseDouble(NrTr[1]);
                     double DE = (this.Tr1 + this.Tr2) / (this.parameterN * (this.Nr1 + this.Nr2));
                     DoubleWritable de = new DoubleWritable(DE);
                     this.multiple.write("probability", this.currKey, de);
+                    index = 0; // get ready to the next trigram
                 }
             }
         }
