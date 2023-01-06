@@ -126,9 +126,7 @@ books - The number of books this 3-gram appeared in during this year
 
 - Gets as input the output files from job3 (<trigram, Nri, Tri> (i=1,2)) and the parameter N from job1.
 
-- Calcualte the Deleted Estimation Probability for each 3-gram according to the given formula.
-
-- Generates an output for each 3-gram with its probability - <3-gram, Probability>
+- Map each input line (w1w2w3NrTr) into <trigram><Nr,Tr> 
 
 ###### Reducer :
 
