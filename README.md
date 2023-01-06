@@ -16,15 +16,22 @@ The system calculates the probability of each trigram (w1,w2,w3) founded in the 
 
 1. update the credential - on the local dir /.aws/credentials
 
-2. create the following buckets :
+2. create the following buckets : "s3n://assignment2gy"
 
 *** 
 
-3. Upload eng-stopwords.txt to  ***
+3. Upload eng-stopwords.txt to the bucket you created and make sure you name it "eng-stopwords.txt".
 
-3. upload Assignment2.jar to assignment2 bucket
+3. Upload the following jars to the "assignment2gy" bucket:
+    - Splitter.jar
+    - NrTrCalculator.jar
+    - Joiner.jar
+    - DEprobability.jar
+    - SortOutput.jar
 
-4. run ***
+4. run java -jar MainLogic/target/MainLogic-1.0-SNAPSHOT.jar
+
+
 
 #### Map Reduce Jobs :
 
@@ -65,6 +72,7 @@ books - The number of books this 3-gram appeared in during this year
 - Generates one output for each 3-gram : <3-gram, r1, r2>
 
 
+
 ##### Job 2 - NrTrCalculate 
  
 ###### Mapper :
@@ -73,13 +81,14 @@ books - The number of books this 3-gram appeared in during this year
 
 - Map each line into two files :
 
-<r1, Aggregator> : Aggregator contains the data: corpus group 1, parameter R, and r2.
+<r1, Aggregator> : Aggregator contains the data: corpus group 1, parameter R, and r2. When R is equal to r1.
 
-<r2, Aggregator> : Aggregator contains the data: corpus group 2, parameter R, and r1.
+<r2, Aggregator> : Aggregator contains the data: corpus group 2, parameter R, and r1. When R is equal to r1.
 
 ###### Reducer :
 
-- Gets as input the files from the mappersand combines the values of Nr1, Nr2, Tr1, Tr2 for each R ( what is R ??? )
+- Gets as input the files from the mappersand combines the values of Nr1, Nr2, Tr1, Tr2 for each R. When R is a number of occurrences in the corpus.
+
 
 
 ##### Job 3 - Joiner 
@@ -111,13 +120,14 @@ books - The number of books this 3-gram appeared in during this year
 * <trigram, Nr2, Tr2>
 
 
+ 
 ##### Job 4 - DEprobability
 
 ###### Mapper :
 
 - Gets as input the output files from job3 (<trigram, Nri, Tri> (i=1,2)) and the parameter N from job1.
 
-- Calcualte the Deleted Estimation Probability for each 3- gram according to the given formula.
+- Calcualte the Deleted Estimation Probability for each 3-gram according to the given formula.
 
 - Generates an output for each 3-gram with its probability - <3-gram, Probability>
 
@@ -127,6 +137,7 @@ books - The number of books this 3-gram appeared in during this year
 
 - Calculate the probability for the given 3-gram according to the Deleted Estimation method.
 
+ 
 
 ##### Job 5 - SortOutput 
 
