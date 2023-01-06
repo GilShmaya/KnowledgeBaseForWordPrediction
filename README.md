@@ -11,14 +11,13 @@ Yael Elad 318917622
 In this Assignment we generated a knowledge-base for English word-prediction system, based on Google 3-Gram English dataset, using Amazon Elastic Map-Reduce. 
 The system calculates the probability of each trigram (w1,w2,w3) founded in the given corpus, and generates the output knowledge base with the resulted probabilities.
 
+*** 
 
 ###### How to run the project :
 
 1. update the credential - on the local dir /.aws/credentials
 
 2. create the following buckets : "s3n://assignment2gy"
-
-*** 
 
 3. Upload eng-stopwords.txt to the bucket you created and make sure you name it "eng-stopwords.txt".
 
@@ -31,7 +30,7 @@ The system calculates the probability of each trigram (w1,w2,w3) founded in the 
 
 4. run java -jar MainLogic/target/MainLogic-1.0-SNAPSHOT.jar
 
-
+*** 
 
 #### Map Reduce Jobs :
 
