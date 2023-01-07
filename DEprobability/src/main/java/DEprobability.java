@@ -37,8 +37,6 @@ public class DEprobability {
 
     /***
      * * Map each input line ([w1][w2][w3][Nr][Tr]) into <trigram><Nr,Tr>
-     * * Input : key - line number , value - the data of that line which contain a trigram and its Nr & Tr values
-     ** Output : key - string of the trigram , Value - a string represents the trigram's Nr & Tr values.
      */
 
     public static class MapperClass extends Mapper<LongWritable, Text, Text, Text> {
@@ -64,9 +62,6 @@ public class DEprobability {
     /***
      * * The Reducer gets a trigram as Key and the trigram's Nr1, Tr1, Nr2, Tr2 values as Value.
      * calculate the probability for the given trigram according to the DE method
-     * @field <index> - indicates on whether we have finished going through all the Nr&Tr values of the trigram
-     * @field <ParameterN> - the number of all trigrams in the corpus
-     * @field <currKey> - the given trigram as a string (w1w2w3)
      */
 
     public static class ReducerClass extends Reducer<Text, Text, Text, DoubleWritable> {
