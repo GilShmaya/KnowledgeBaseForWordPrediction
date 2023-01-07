@@ -1,0 +1,27 @@
+Statistics :
+
+Number of key-value pairs that were sent from the mappers to the reducers, and their size, (using English 3-Gram dataset)
+with and without local aggregation (Combiner) :
+
+
+Without using Combiner :
+		
+* Map input records= 12368376963
+* Map output records= 1746269
+* Reduce input records= 1746269
+* Reduce output records= 48125
+
+
+Using Combiner :
+
+* Map input records= 12368376963
+* Map output records= 1746269
+* Combine input records= 1746269
+* Combine output records= 96250
+* Reduce input records= 96250
+* Reduce output records= 48125
+		
+
+
+		
+		
