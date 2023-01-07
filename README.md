@@ -32,6 +32,11 @@ The system calculates the probability of each trigram (w1,w2,w3) founded in the 
 
 *** 
 
+###### Output : 
+s3://assignment2gy/Output/
+
+*** 
+
 #### Map Reduce Jobs :
 
 ##### Job 1 - Splitter 
