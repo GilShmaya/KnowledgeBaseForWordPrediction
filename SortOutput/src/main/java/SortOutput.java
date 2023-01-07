@@ -25,8 +25,6 @@ public class SortOutput {
 
     /***
      * * Map every line (w1 w2 w3 probability) into <NewProbability, w3>
-     *     NewProbability update the probability of the pair w1w2 to be the probability of the trigram w1w2w3 in order
-     *     to know which w3 should appear first with w1w2.
      */
 
     public static class MapperClass extends Mapper<LongWritable, Text, NewProbability, Text> {
